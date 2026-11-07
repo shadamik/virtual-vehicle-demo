@@ -1,0 +1,10 @@
+.vercel
+
+node_modules/
+test-results/
+playwright-report/
+
+dist/
+_site/
+.site-state/
+.DS_Store

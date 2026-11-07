@@ -1,0 +1,14 @@
+{
+  "name": "virtual-vehicle-demo",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "start": "http-server . -a 127.0.0.1 -p 4173 -c-1",
+    "test": "playwright test",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "http-server": "14.1.1"
+  }
+}

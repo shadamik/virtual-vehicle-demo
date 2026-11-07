@@ -1,0 +1,127 @@
+name: Preview · Test and deploy
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Package website
+        run: npm run build
+        env:
+          DEPLOY_ENV: Preview
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+      - name: Test packaged vehicle
+        run: npx playwright test
+        env:
+          TEST_SITE_DIR: dist
+      - name: Save test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-test-report
+          path: playwright-report/
+          retention-days: 14
+      - name: Upload tested website
+        uses: actions/upload-artifact@v4
+        with:
+          name: tested-app
+          path: dist/
+          include-hidden-files: true
+  deploy:
+    name: Deploy to preview
+    needs: test
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: preview
+      url: https://shadamik.github.io/virtual-vehicle-demo/preview/pr-${{ github.event.pull_request.number }}/
+    steps:
+      - name: Check out trusted deployment scripts
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Restore published site
+        uses: actions/checkout@v6
+        with:
+          ref: site-state
+          path: .site-state
+      - uses: actions/download-artifact@v4
+        with:
+          name: tested-app
+          path: build-output
+      - name: Preserve other environments
+        run: bash scripts/assemble-site.sh
+        env:
+          DEPLOY_ENV: Preview
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Publish website
+        uses: actions/deploy-pages@v4
+      - name: Save published site
+        working-directory: .site-state
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .
+          git diff --cached --quiet || git commit -m 'Update preview deployment'
+          git push origin HEAD:site-state
+  verify:
+    name: Verify live vehicle
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: https://shadamik.github.io/virtual-vehicle-demo/preview/pr-${{ github.event.pull_request.number }}/
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify published commit
+        run: node scripts/verify-deployment.mjs
+      - name: Test live vehicle
+        run: npx playwright test
+      - name: Save live test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-test-report
+          path: playwright-report/
+          retention-days: 14
+      - name: Write summary
+        run: |
+          echo '## Preview vehicle verified' >> "$GITHUB_STEP_SUMMARY"
+          echo "Tested commit: $SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Live vehicle: $BASE_URL" >> "$GITHUB_STEP_SUMMARY"
