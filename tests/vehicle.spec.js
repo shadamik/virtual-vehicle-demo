@@ -5,6 +5,8 @@ test.beforeEach(async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('#view')).toHaveAttribute('data-ready', 'true');
   await expect(page.locator('#error')).toBeHidden();
+  // A Retina canvas must not inflate its containing grid row.
+  await expect.poll(async () => (await page.locator('#view').boundingBox()).height).toBeLessThan(800);
 });
 
 test('paint selection updates its name and selected swatch', async ({ page }) => {
