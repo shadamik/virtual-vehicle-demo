@@ -16,7 +16,7 @@ Run `npx playwright test` with port 4173 free. Playwright starts its own server.
 
 For a manual preview, run `npx vercel` from this folder and select your Vehicle Lab project. Vercel builds the static files into `dist`.
 
-For automatic delivery, sign in to Vercel and add GitHub under **Account Settings → Authentication → Login Connections**. Import `shadamik/virtual-vehicle-demo` as a Vercel project and authorize access to this repository. Use `main` as the production branch. The build command and output directory are already in `vercel.json`.
+For automatic delivery, sign in to Vercel and add GitHub under **Account Settings → Authentication → Login Connections**. In the `virtual-vehicle-demo` Vercel project, open **Settings → Git** and connect `shadamik/virtual-vehicle-demo`. If prompted, install the Vercel GitHub app with access to this repository. Use `main` as the production branch. The build command and output directory are already in `vercel.json`.
 
 Push a feature branch and open a pull request. GitHub Actions runs **Vehicle browser tests**, and Vercel supplies a preview URL. These run independently. Merge after the tests pass and you have tried the preview. Vercel builds production from `main`.
 
