@@ -45,6 +45,7 @@ rotationUI();
 rotate.onclick=()=>{spinning=!spinning;rotationUI()};
 document.querySelectorAll('[data-color]').forEach(button=>button.onclick=()=>{paint.color.set(button.dataset.color);document.querySelector('#paint-name').textContent=button.dataset.name;document.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)))});
 document.querySelector('#speed').oninput=e=>{speed=Number(e.target.value);document.querySelector('#speed-value').textContent=`${speed} km/h`};
+document.querySelector('#stop-wheels').onclick=()=>{const slider=document.querySelector('#speed');slider.value='0';slider.dispatchEvent(new Event('input'));};
 let headlights=true;
 document.querySelector('#lights').onclick=e=>{headlights=!headlights;lamps.emissiveIntensity=headlights?3:0;lamps.color.set(headlights?'#e8ffff':'#526561');e.currentTarget.textContent=`Headlights: ${headlights?'on':'off'}`;e.currentTarget.setAttribute('aria-pressed',String(headlights));document.querySelector('#light-state').textContent=`Headlights ${headlights?'on':'off'}`};
 document.querySelector('#reset').onclick=()=>{yaw=.5;pitch=.38;};

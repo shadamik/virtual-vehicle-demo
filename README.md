@@ -36,7 +36,7 @@ BASE_URL="https://shadamik.github.io/virtual-vehicle-demo/preview/pr-1/" npx pla
 
 ## What is tested
 
-Paint selection, headlights off/on, rotation pause/resume, and wheel-speed feedback. Tests wait for the first rendered frame. They check interactive UI behavior, not pixel-level rendering correctness, vehicle physics, or real telemetry.
+Paint selection, headlights off/on, rotation pause/resume, wheel-speed feedback, and stopping/restarting the wheels. Tests run at Retina pixel density, wait for the first rendered frame, and check that the canvas stays within a usable height. They check interactive UI behavior, not pixel-level rendering correctness, vehicle physics, or real telemetry.
 
 The test and live-verification reports are available as GitHub Actions artifacts, including screenshots and traces on failure. A failed pre-deployment test prevents publication. A failed post-deployment test fails the workflow but does not automatically roll back the site.
 

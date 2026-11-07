@@ -5,6 +5,8 @@ test.beforeEach(async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('#view')).toHaveAttribute('data-ready', 'true');
   await expect(page.locator('#error')).toBeHidden();
+  // A Retina canvas must not inflate its containing grid row.
+  await expect.poll(async () => (await page.locator('#view').boundingBox()).height).toBeLessThan(800);
 });
 
 test('paint selection updates its name and selected swatch', async ({ page }) => {
@@ -45,4 +47,17 @@ test('wheel-speed feedback follows keyboard input and resets', async ({ page }) 
   await speed.press('Home');
   await expect(speed).toHaveValue('0');
   await expect(page.locator('#speed-value')).toHaveText('0 km/h');
+});
+
+test('Stop wheels resets moving wheels and allows restarting', async ({ page }) => {
+  const speed = page.getByRole('slider', { name: 'Wheel speed' });
+  await speed.press('End');
+  await expect(speed).toHaveValue('120');
+  await expect(page.locator('#speed-value')).toHaveText('120 km/h');
+  await page.getByRole('button', { name: 'Stop wheels', exact: true }).click();
+  await expect(speed).toHaveValue('0');
+  await expect(page.locator('#speed-value')).toHaveText('0 km/h');
+  await speed.press('ArrowRight');
+  await expect(speed).toHaveValue('10');
+  await expect(page.locator('#speed-value')).toHaveText('10 km/h');
 });

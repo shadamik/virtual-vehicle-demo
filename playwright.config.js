@@ -11,7 +11,7 @@ module.exports = defineConfig({
     browserName: 'chromium',
     baseURL: targetURL || 'http://127.0.0.1:4173',
     viewport: { width: 1280, height: 900 },
-    reducedMotion: 'no-preference',
+    deviceScaleFactor: 2, reducedMotion: 'no-preference',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure'
   },
