@@ -1,55 +1,33 @@
-# Vehicle Lab — continuous delivery demo
+# Vehicle Lab
 
-An interactive 3D concept car with real browser tests and a visible GitHub delivery workflow.
+An interactive Three.js concept car with five Playwright tests covering paint, lights, rotation, wheel speed, and stopping and restarting the wheels.
 
-[Live vehicle](https://shadamik.github.io/virtual-vehicle-demo/) · [Workflow runs](https://github.com/shadamik/virtual-vehicle-demo/actions)
-
-## The principle
-
-**Commit → push → pull request → tests → preview → merge → tests → production.**
-
-Pull requests test the exact head commit and deploy owner-created, same-repository changes under `preview/pr-N/`. Merging into `main` tests the merged commit and automatically deploys production. Each workflow then checks the live commit marker and repeats the browser tests against the deployed website.
-
-GitHub Pages serves one site: production lives at its root and previews live in subdirectories. Both workflows share a deployment concurrency group and preserve other environments using the `site-state` branch. That branch stores website files only. No external deployment token is required.
-
-## Local use
-
-One-time setup:
+## Run locally
 
 ```sh
 npm ci
 npx playwright install chromium
-```
-
-Everyday commands:
-
-```sh
 npm start
-npx playwright test
 ```
 
-Tests start their own server on port 4173; stop `npm start` before running local tests. To test an existing preview:
+Run `npx playwright test` with port 4173 free. Playwright starts its own server.
+
+## Deploy with Vercel
+
+For a manual preview, run `npx vercel` from this folder and select your Vehicle Lab project. Vercel builds the static files into `dist`.
+
+For automatic delivery, sign in to Vercel and add GitHub under **Account Settings → Authentication → Login Connections**. In the `virtual-vehicle-demo` Vercel project, open **Settings → Git** and connect `shadamik/virtual-vehicle-demo`. If prompted, install the Vercel GitHub app with access to this repository. Use `main` as the production branch. The build command and output directory are already in `vercel.json`.
+
+Push a feature branch and open a pull request. GitHub Actions runs **Vehicle browser tests**, and Vercel supplies a preview URL. These run independently. Merge after the tests pass and you have tried the preview. Vercel builds production from `main`.
+
+To make production promotion wait for the tests on the merged commit, add **Vehicle browser tests** as a GitHub check under **Vercel → Project Settings → Deployment Checks**. Verify the check is configured before relying on it as a release gate. See [Vercel Deployment Checks](https://vercel.com/docs/deployment-checks).
+
+## Verify a deployment
+
+Git deployments show their environment and short commit on the page. Open `/deployment.json` to see the full commit. To run the browser tests against an accessible deployment:
 
 ```sh
-BASE_URL="https://shadamik.github.io/virtual-vehicle-demo/preview/pr-1/" npx playwright test
+BASE_URL=https://YOUR-DEPLOYMENT.vercel.app npx playwright test
 ```
 
-## What is tested
-
-Paint selection, headlights off/on, rotation pause/resume, wheel-speed feedback, and stopping/restarting the wheels. Tests run at Retina pixel density, wait for the first rendered frame, and check that the canvas stays within a usable height. They check interactive UI behavior, not pixel-level rendering correctness, vehicle physics, or real telemetry.
-
-The test and live-verification reports are available as GitHub Actions artifacts, including screenshots and traces on failure. A failed pre-deployment test prevents publication. A failed post-deployment test fails the workflow but does not automatically roll back the site.
-
-## Packaging and traceability
-
-`npm run build` copies only `index.html`, `app.js`, and `vendor/` into `dist/`, adds `.nojekyll`, and writes `deployment.json` with the environment and exact source SHA. The visible build label includes the environment and short SHA. CI tests this packaged site before publishing it.
-
-The app remains static and can still be deployed with Vercel. Its original deployment is separate from this repository.
-
-## Dependencies
-
-Three.js 0.170.0 is bundled in `vendor/`, with its MIT license. Car geometry is procedural. A WebGL2-capable browser is required. Node.js 24 is used in CI; dependency versions are pinned in the lockfile.
-
-## Repeating the demonstration
-
-Create a feature branch, make a small UI change and corresponding test, commit, push, and open a pull request. Inspect **Test → Deploy to preview → Verify live vehicle**, try the linked preview, then merge and inspect the matching production workflow. Previews remain available for presentation evidence; there is no automatic cleanup.
+[GitHub Actions test reports](https://github.com/shadamik/virtual-vehicle-demo/actions)
